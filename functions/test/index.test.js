@@ -90,7 +90,7 @@ it("tests an add a score function that interacts with Firestore", async () => {
 }).timeout(5000);
 
 it("checks for a word that already exists", async ()=>{
-
+  const wordExists = myFunctions.checkdailyword("2023-08-01", "hello")
   assert.strictEqual(wordExists, true);
 
 })
