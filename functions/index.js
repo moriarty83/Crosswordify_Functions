@@ -13,10 +13,25 @@ initializeApp();
 // Create and deploy your first functions
 // https://firebase.google.com/docs/functions/get-started
 
+exports.checkdailyword = onRequest(async (date, word) => {
+    // Grab the text parameter.
+    const date = date
+    const word = word;
+    const wordSnap = admin.firestore().collection("daily_words").where("date", "==", date).get();
+    const snapData = wordSnap.docs[0].data(); // Assuming there's only one document in the collection
+
+    console.log("snapData: ", snapData)
+    // Push the new message into Firestore using the Firebase Admin SDK.
+
+    // Send back a message that we've successfully written the message
+    // res.json({result: `Word with ID: ${writeResult.id} added.`});
+    return null
+  });
+
 exports.addword = onRequest(async (req, res) => {
     // Grab the text parameter.
-    const date = req.query.word
-    const word = parseInt(req.query.date);
+    const date = req.query.date
+    const word = req.query.word;
     logger.info(date)
     logger.info(word)
     // Push the new message into Firestore using the Firebase Admin SDK.
@@ -27,13 +42,35 @@ exports.addword = onRequest(async (req, res) => {
     res.json({result: `Word with ID: ${writeResult.id} added.`});
   });
 
+  exports.addscore = onRequest(async (req, res) => {
+    // Grab the text parameter.
+    const date = req.query.date
+    const score = parseInt(req.query.score);
+    // Push the new message into Firestore using the Firebase Admin SDK.
+    const writeResult = await getFirestore()
+        .collection("scores")
+        .add({date: date, score: score});
+    // Send back a message that we've successfully written the message
+    res.json({result: `Score with ID: ${writeResult.id} added.`});
+
+    return writeResult.id
+  });
 
 
 
-exports.helloWorld = onRequest((request, response) => {
+
+exports.helloFirebase = onRequest((request, response) => {
   logger.info("Hello logs!", {structuredData: true});
   response.send("Hello from Firebase!");
 });
+
+exports.helloWorld = ()=>{
+    return "hello world"
+}
+
+exports.simpleHttp = onRequest((request, response) => {
+    response.send(`text: ${request.query.text}`);
+  });
 
 ////////////////// TUTORIAL FUNCTIONS ///////////////////
 exports.addmessage = onRequest(async (req, res) => {
@@ -44,7 +81,10 @@ exports.addmessage = onRequest(async (req, res) => {
         .collection("messages")
         .add({original: original});
     // Send back a message that we've successfully written the message
-    res.json({result: `Message with ID: ${writeResult.id} added.`});
+    res.json({result: `Message with ID: ${writeResult.id} added.`, id: writeResult.id});
+
+    const messageId = writeResult.id;
+    return messageId;
   });
 
 
@@ -63,3 +103,5 @@ exports.addmessage = onRequest(async (req, res) => {
     // Setting an 'uppercase' field in Firestore document returns a Promise.
     return event.data.ref.set({uppercase}, {merge: true});
   });
+
+  
