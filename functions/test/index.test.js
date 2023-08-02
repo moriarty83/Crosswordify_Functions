@@ -12,63 +12,21 @@ const test = require("firebase-functions-test")({
 });
 
 const myFunctions = require("../index");
+const scoring = require("../scoring_functions")
+const testStates = require("../test_states")
 
 
 describe("Unit tests", () => {
   after(() => {
     test.cleanup();
   });
-  it("tests hello firebase", ()=>{
-    response = myFunctions.helloWorld()
-    assert.equal(response, "hello world")
-  })
 
-  it("tests a simple HTTP function", async () => {
-    // A fake request object, with req.query.text set to 'input'
-    const req = { query: { text: "input" } };
 
-    const sendPromise = new Promise((resolve) => {
-      // A fake response object, with a stubbed send() function which asserts that it is called
-      // with the right result
-      const res = {
-        send: (text) => {
-          resolve(text);
-        }
-      };
-
-      // Invoke function with our fake request and response objects.
-      myFunctions.simpleHttp(req, res)
-    });
-
-    // Wait for the promise to be resolved and then check the sent text
-    const text = await sendPromise;
-    assert.equal(text, `text: input`);
-  });
-
-  it("tests an add message function that interacts with Firestore", async () => {
-    // Make a fake request to pass to the function
-    const req = {"query": {"text": 'Test Message'}};
-
-    // Create a response object with a `json` method to capture the result
-    const res = {
-        json: (data) => {
-            console.log(data); // Print the result to the console
-        }
-    };
-
-    // Call the function
-    const addedMessageId = await myFunctions.addmessage(req, res);
-    const messageRef = admin.firestore().collection("messages").doc(addedMessageId);
-    const messageSnapshot = await messageRef.get();
-    const messageData = messageSnapshot.data()
-
-    assert.strictEqual(messageData.original, 'Test Message');
-    assert.strictEqual(typeof messageData.original, 'string');
-}).timeout(5000);
 
 it("tests an add a score function that interacts with Firestore", async () => {
   // Make a fake request to pass to the function
-  const req = {"query": {"date": "2023-08-01", "score": "234"}};
+  date = "8/1/2023" 
+  score = 234
 
   // Create a response object with a `json` method to capture the result
   const res = {
@@ -78,40 +36,81 @@ it("tests an add a score function that interacts with Firestore", async () => {
   };
 
   // Call the function
-  const addedScoreID = await myFunctions.addscore(req, res);
+  const addedScoreID = await myFunctions.addscore(date, score);
   const scoreRef = admin.firestore().collection("scores").doc(addedScoreID);
   const scoreSnapshot = await scoreRef.get();
   const scoreData = scoreSnapshot.data()
   console.log(scoreData)
   assert.strictEqual(scoreData.score, 234);
   assert.strictEqual(typeof scoreData.score, 'number');
-  assert.strictEqual(scoreData.date, "2023-08-01");
+  assert.strictEqual(scoreData.date, "8/1/2023");
   assert.strictEqual(typeof scoreData.date, 'string');
 }).timeout(5000);
 
 it("checks for a word that already exists", async ()=>{
-  const wordExists = myFunctions.checkdailyword("2023-08-01", "hello")
+  const wordExists = await myFunctions.checkWordExists("2023-08-01", "hello")
   assert.strictEqual(wordExists, true);
+})
+it("checks for a word on a date that exists but the word doesn't match", async ()=>{
+  const wordExists = await myFunctions.checkWordExists("2023-08-01", "goodbye")
+  assert.strictEqual(wordExists, false);
+})
+it("checks for a word on a date that exists but the word doesn't match", async ()=>{
+  const wordExists = await myFunctions.checkWordExists("2023-08-06", "Test3")
+  assert.strictEqual(wordExists, false);
+})
+
+it("checks State1 for correct number of accross and down words", ()=>{
+  const returnState = scoring.checkWords(testStates.State1)
+  assert.strictEqual(returnState.acrossWords[0], true);
+  assert.strictEqual(returnState.acrossWords[1], false);
+  assert.strictEqual(returnState.acrossWords[2], false);
+  assert.strictEqual(returnState.acrossWords[3], false);
+  assert.strictEqual(returnState.acrossWords[4], false);
+
+  assert.strictEqual(returnState.downWords[0], true);
+  assert.strictEqual(returnState.downWords[1], true);
+  assert.strictEqual(returnState.downWords[2], false);
+  assert.strictEqual(returnState.downWords[3], false);
+  assert.strictEqual(returnState.downWords[4], false);
+})
+
+it("checks State1 for score", ()=>{
+  const returnState = scoring.checkWords(testStates.State1)
+  assert.strictEqual(scoring.scoreGame(returnState), 91)
+})
+
+it("checks State2 for score", ()=>{
+  const returnState = scoring.checkWords(testStates.State2)
+  assert.strictEqual(scoring.scoreGame(returnState), 212)
+})
+
+it("checks 8/1/2023 start word", async ()=>{
+  let correctStartWord = await scoring.checkStartWord(testStates.State1.today, testStates.State1.startWord)
+  assert.strictEqual(correctStartWord, true)
+  correctStartWord = await scoring.checkStartWord(testStates.State1.today, testStates.State2.startWord)
+  assert.strictEqual(correctStartWord, false)
 
 })
 
-it("tests an add message function that interacts with Firestore", async () => {
-  // Make a fake request to pass to the function
-  const req = {"query": {"text": 'Test Message'}};
-  // Create a response object with a `json` method to capture the result
-  const res = {
-      json: (data) => {
-          console.log(data); // Print the result to the console
-      }
-  };
-  // Call the function
-  const addedMessageId = await myFunctions.addmessage(req, res);
-  const messageRef = admin.firestore().collection("messages").doc(addedMessageId);
-  const messageSnapshot = await messageRef.get();
-  const messageData = messageSnapshot.data()
+it("checks 8/2/2023 start word", async ()=>{
+  let correctStartWord = await scoring.checkStartWord(testStates.State2.today, testStates.State2.startWord)
+  assert.strictEqual(correctStartWord, true)
+  correctStartWord = await scoring.checkStartWord(testStates.State2.today, testStates.State1.startWord)
+  assert.strictEqual(correctStartWord, false)
+})
 
-  assert.strictEqual(messageData.original, 'Test Message');
-  assert.strictEqual(typeof messageData.original, 'string');
-}).timeout(5000);
+it("checks processScore for State1", async()=>{
+  const processedGame = await scoring.processScore(testStates.State1)
+  console.log(processedGame)
+  assert.strictEqual(processedGame.score, 91)
+})
+
+it("checks retriveal of score docs for specific date", async()=>{
+  const docs = await myFunctions.getStats("8/1/2023")
+  console.log(docs)
+  assert.strictEqual(docs.length > 0, true)
+})
+
 });
   
