@@ -16,6 +16,7 @@
   "dependencies": {
     "firebase-admin": "^11.8.0",
     "firebase-functions": "^4.3.1",
+    "node-fetch": "^3.3.2",
     "random-seedable": "^1.0.8"
   },
   "devDependencies": {

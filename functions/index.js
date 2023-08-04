@@ -8,7 +8,9 @@ const {initializeApp} = require("firebase-admin/app");
 const {getFirestore} = require("firebase-admin/firestore");
 const score = require("./scoring_functions")
 
-initializeApp();
+initializeApp({
+    projectId: 'crosswordify-d1be7',
+  });
 
 
 // Create and deploy your first functions
@@ -31,6 +33,16 @@ exports.submitGame = onRequest(async (req, res) => {
     res.json({...processedScore, wordAdded: wordAdded, scoreId: scoreId});
   });
 
+  exports.getStatsByRangeAPI = onRequest(async (req, res) => {
+    // Grab the text parameter.
+    console.log("reqBody: ", req.body)
+    const startDate = req.body.startDate
+    const endDate = req.body.endDate ? req.body.endDate : req.body.startDate;
+    const data = await exports.getStatsByDates(startDate, endDate)
+    console.log("data: ", data)
+    res.json(Object.fromEntries(data))
+  });
+
   exports.getStats = async (date) => {
     // Grab the text parameter.
     const scoreSnap = await admin.firestore().collection("scores").where("date", "==", date).get();
@@ -40,8 +52,31 @@ exports.submitGame = onRequest(async (req, res) => {
             scoreData.push(doc.data())
         }
     }
-    console.log(scoreData)
-    return scoreData
+    const scoresMap = scoreData.reduce((acc, item) => {
+        const score = item.score;
+
+        // Check if the score already exists in the accumulator
+        if (acc[score]) {
+          acc[score]++;
+        } else {
+          acc[score] = 1;
+        }
+      
+        return acc;
+      }, {});
+      console.log("scoresMap: ", typeof scoresMap)
+    return scoresMap
+  };
+
+  exports.getStatsByDates = async (startDate, endDate) => {
+    // Grab the text parameter.
+    let statsMap = new Map()
+    const dates = exports.getDatesInRange(startDate, endDate)
+    for (let date of dates){
+        statsMap.set(date, await exports.getStats(date))
+    }
+    console.log("statsMap: ", statsMap)
+    return statsMap
   };
 
 exports.checkWordExists = async (date, word) => {
@@ -70,6 +105,9 @@ exports.addword = async (date, word) => {
   };
 
   exports.addscore = async (date, score) => {
+    console.log("date: ", date)
+    console.log("score: ", score)
+
     // Push the new message into Firestore using the Firebase Admin SDK.
     const writeResult = await getFirestore()
         .collection("scores")
@@ -79,7 +117,61 @@ exports.addword = async (date, word) => {
     return writeResult.id
   };
 
+  exports.addscore = async (date, score) => {
+    console.log("date: ", date)
+    console.log("score: ", score)
 
+    // Push the new message into Firestore using the Firebase Admin SDK.
+    const writeResult = await getFirestore()
+        .collection("scores")
+        .add({date: date, score: score});
+    // Send back a message that we've successfully written the message
+
+    return writeResult.id
+  };
+
+  exports.addscoreAPI = onRequest(async (req, res) => {
+    console.log("date: ", req.body.date)
+    console.log("score: ", req.body.score)
+
+    // Push the new message into Firestore using the Firebase Admin SDK.
+    const writeResult = await getFirestore()
+        .collection("scores")
+        .add({date: req.body.date, score: req.body.score});
+    // Send back a message that we've successfully written the message
+    res.json(writeResult.id)
+    return writeResult.id
+  });
+
+
+  exports.getDatesInRange = (startDateStr, endDateStr)=>{
+    const startDate = new Date(startDateStr);
+    const endDate = new Date(endDateStr);
+    const dates = [];
+  
+    // Helper function to format the date as "M/D/YYYY"
+    function formatDate(date) {
+      const month = date.getMonth() + 1;
+      const day = date.getDate();
+      const year = date.getFullYear();
+      return `${month}/${day}/${year}`;
+    }
+  
+    let currentDate = new Date(startDate);
+    while (currentDate <= endDate) {
+      dates.push(formatDate(currentDate));
+      currentDate.setDate(currentDate.getDate() + 1);
+    }
+  
+    return dates;
+  }
+  
+  
+  
+  
+  
+  
+  
 
 
   
