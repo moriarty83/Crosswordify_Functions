@@ -1,6 +1,6 @@
-const dictionary = require("../dictionary")
+const dictionary = require("./dictionary")
 const dict = dictionary.dictionary;
-const startWordsFile = require("../startWords")
+const startWordsFile = require("./startWords")
 const startingWords = startWordsFile.startingWords
 
 letter_values = {
