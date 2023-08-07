@@ -2,6 +2,7 @@ const dictionary = require("./dictionary")
 const dict = dictionary.dictionary;
 const startWordsFile = require("./startWords")
 const startingWords = startWordsFile.startingWords
+const helper= require("./helpers")
 
 letter_values = {
     E: 1,
@@ -127,36 +128,10 @@ exports.checkWords = (state, chars)=>{
   }
 
 
-exports.checkStartWord = async (date, userWord)=>{
-    const randomSeedable = await import("random-seedable");
-    // Destructure the XORShift class from the imported module
-    
-    const { XORShift } = randomSeedable;
-    const rando = new XORShift(date.split("/").join(""));
-    const wordsLength = Object.keys(startingWords).length
-    const keys = Object.keys(startingWords);
-
-    let correctWord = ''
-    let length = correctWord.length
-    
-    while (length != 5) {
-      correctWord = keys[rando.randRange(0, wordsLength)]
-      length = correctWord.length
-  
-    }
-    
-    correctWord = correctWord.toUpperCase()
-    return correctWord == userWord
-  }
 
   exports.processScore = async (state) => {
-    if (!(await exports.checkStartWord(state.today, state.startWord))) {
-      return {success: false, score: null, date: state.today};
-    }
-  
     const updatedState = exports.checkWords(state); // Use `exports` to access the exported function
     const gameScore = exports.scoreGame(updatedState); // Use `exports` to access the exported function
-    console.log("gameScore: ", gameScore)
     // Do something with gameScore
     return {success: true, score: gameScore, date: state.today}
   };

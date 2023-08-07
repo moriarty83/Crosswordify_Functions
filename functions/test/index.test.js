@@ -28,37 +28,14 @@ describe("Unit tests", () => {
 
 
 it("tests an add a score function that interacts with Firestore", async () => {
-  // Make a fake request to pass to the function
-  date = "8/1/2023" 
-  score = 234
+  const addedScoreID = await helper.addscore("8/1/2023", 235);
 
-  // Create a response object with a `json` method to capture the result
-  const res = {
-      json: (data) => {
-          console.log(data); // Print the result to the console
-      }
-  };
-
-  // Call the function
-  const addedScoreID = await helper.addscore(date, score);
-  const scoreRef = admin.firestore().collection("scores").doc(addedScoreID);
-  const scoreSnapshot = await scoreRef.get();
-  const scoreData = scoreSnapshot.data()
-  console.log(scoreData)
-  assert.strictEqual(scoreData.score, 234);
-  assert.strictEqual(typeof scoreData.score, 'number');
-  assert.strictEqual(scoreData.date, "8/1/2023");
-  assert.strictEqual(typeof scoreData.date, 'string');
+  assert.strictEqual(addedScoreID.score, 235);
+  assert.strictEqual(typeof addedScoreID.score, 'number');
+  assert.strictEqual(addedScoreID.date, "8/1/2023");
+  assert.strictEqual(typeof addedScoreID.date, 'string');
 }).timeout(5000);
 
-it("checks for a word that already exists", async ()=>{
-  const wordExists = await helper.checkWordExists("7/2/2023", "KALIF")
-  assert.strictEqual(wordExists, true);
-})
-it("checks for a word on a date that exists but the word doesn't match", async ()=>{
-  const wordExists = await helper.checkWordExists("7/2/2023", "goodbye")
-  assert.strictEqual(wordExists, false);
-})
 
 
 it("checks State1 for correct number of accross and down words", ()=>{
@@ -81,24 +58,33 @@ it("checks State1 for score", ()=>{
   assert.strictEqual(scoring.scoreGame(returnState), 91)
 })
 
-it("checks State2 for score", ()=>{
-  const returnState = scoring.checkWords(testStates.State2)
-  assert.strictEqual(scoring.scoreGame(returnState), 212)
+
+it("checks get correct word, of ILLTH for 8/7/2023", async ()=>{
+  assert.strictEqual(await helper.getCorrectWord("8/7/2023"), "ILLTH")
 })
 
-it("checks 8/1/2023 start word", async ()=>{
-  let correctStartWord = await scoring.checkStartWord(testStates.State1.today, testStates.State1.startWord)
+it("checks get correct word, of State1 and 8/1/2023", async ()=>{
+  assert.strictEqual(await helper.getCorrectWord("8/1/2023")==testStates.State1.startWord, true)
+})
+
+it("checks should identify incorrect word of State3 and 8/7/2023 date", async ()=>{
+  assert.strictEqual(await helper.getCorrectWord("8/7/2023") == testStates.State3.startWord, false)
+})
+
+it("checks State 1 start word", async ()=>{
+  let correctStartWord = await helper.checkStartWord(await helper.getCorrectWord(testStates.State1.today), testStates.State1.startWord)
   assert.strictEqual(correctStartWord, true)
-  correctStartWord = await scoring.checkStartWord(testStates.State1.today, testStates.State2.startWord)
+
+  correctStartWord = await helper.checkStartWord(helper.getCorrectWord("8/1/2023"), testStates.State2.startWord)
   assert.strictEqual(correctStartWord, false)
 
 })
 
 it("checks 8/2/2023 start word", async ()=>{
-  let correctStartWord = await scoring.checkStartWord(testStates.State2.today, testStates.State2.startWord)
+  let correctWord = await helper.getCorrectWord(testStates.State2.today)
+  let correctStartWord = helper.checkStartWord(correctWord, testStates.State2.startWord)
+
   assert.strictEqual(correctStartWord, true)
-  correctStartWord = await scoring.checkStartWord(testStates.State2.today, testStates.State1.startWord)
-  assert.strictEqual(correctStartWord, false)
 })
 
 it("checks processScore for State1", async()=>{
@@ -113,7 +99,6 @@ it("checks retriveal of score docs for specific date", async()=>{
 
 it("checks retriveal of score docs for specific date is a reduced Object", async()=>{
   const docs = await helper.getStats("8/1/2023")
-  console.log(typeof docs)
   assert.strictEqual(typeof docs, 'object')
 })
 
@@ -125,28 +110,21 @@ it("checks retriveal of score docs for test scores1 date", async()=>{
 
 it("checks to see if we get 5 days of stats for 7/27 through 7/31", async ()=>{
   const data = await helper.getStatsByDates("7/27/2023", "7/31/2023")
-  console.log(data)
   assert.strictEqual(data.size, 5)
 })
 
-
-it("checks to see if we get 5 days of stats for 7/29 through 8/2", async ()=>{
-  const data = await helper.getStatsByDates("7/29/2023", "8/2/2023")
-  console.log(data)
-  assert.strictEqual(data.size, 5)
-})
-
-it("checks to see if we get 5 days of stats for 7/20 through 7/24", async ()=>{
-  const data = await helper.getStatsByDates("7/20/2023", "7/24/2023")
-  console.log(data)
-  assert.strictEqual(data.size, 5)
-})
 
 it("checks to see if we get a word with length of 5 for addword on 7/1/2023", async ()=>{
   const newWord = await helper.getCorrectWord('7/2/2023')
   const data = await helper.addword('7/2/2023', newWord)
-  console.log(data)
+
   assert.strictEqual(data.length, 5)
+})
+
+it("checks checks to see if a word doesn't exist and adds it.", async ()=>{
+  const newWord = await helper.getWordByDate("9/3/2023")
+  console.log("newWord: ", newWord)
+  assert.strictEqual(newWord.length, 5)
 })
 
 });

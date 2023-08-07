@@ -413,3 +413,214 @@ exports.State2 =  {
     "today": "8/2/2023",
     "totalScore": 212
   }
+
+
+
+  //////////////// SHOULD FAIL ////////////
+  exports.State3 =  {
+    "acrossWords": [
+      true,
+      true,
+      true,
+      false,
+      false
+    ],
+    "activeCol": 1,
+    "activeRow": 1,
+    "activeSpace": 6,
+    "chars": [
+       {
+        "across": true,
+        "char": "I",
+        "down": true,
+        "fixed": true
+      },
+       {
+        "across": true,
+        "char": "R",
+        "down": true,
+        "fixed": true
+      },
+       {
+        "across": true,
+        "char": "K",
+        "down": false,
+        "fixed": true
+      },
+       {
+        "across": true,
+        "char": "E",
+        "down": true,
+        "fixed": true
+      },
+       {
+        "across": true,
+        "char": "D",
+        "down": true,
+        "fixed": true
+      },
+       {
+        "across": true,
+        "char": "R",
+        "down": true,
+        "fixed": false
+      },
+       {
+        "across": true,
+        "char": "O",
+        "down": true,
+        "fixed": false
+      },
+       {
+        "across": true,
+        "char": "O",
+        "down": false,
+        "fixed": false
+      },
+       {
+        "across": true,
+        "char": "M",
+        "down": true,
+        "fixed": false
+      },
+       {
+        "across": true,
+        "char": "Y",
+        "down": true,
+        "fixed": false
+      },
+       {
+        "across": true,
+        "char": "A",
+        "down": true,
+        "fixed": false
+      },
+       {
+        "across": true,
+        "char": "L",
+        "down": true,
+        "fixed": false
+      },
+       {
+        "across": true,
+        "char": "I",
+        "down": false,
+        "fixed": false
+      },
+       {
+        "across": true,
+        "char": "B",
+        "down": true,
+        "fixed": false
+      },
+       {
+        "across": true,
+        "char": "I",
+        "down": true,
+        "fixed": false
+      },
+       {
+        "across": false,
+        "char": "T",
+        "down": true,
+        "fixed": false
+      },
+       {
+        "across": false,
+        "char": "L",
+        "down": true,
+        "fixed": false
+      },
+       {
+        "across": false,
+        "char": null,
+        "down": false,
+        "fixed": false
+      },
+       {
+        "across": false,
+        "char": "U",
+        "down": true,
+        "fixed": false
+      },
+       {
+        "across": false,
+        "char": "N",
+        "down": true,
+        "fixed": false
+      },
+       {
+        "across": false,
+        "char": "E",
+        "down": true,
+        "fixed": false
+      },
+       {
+        "across": false,
+        "char": "S",
+        "down": true,
+        "fixed": false
+      },
+       {
+        "across": false,
+        "char": null,
+        "down": false,
+        "fixed": false
+      },
+       {
+        "across": false,
+        "char": "E",
+        "down": true,
+        "fixed": false
+      },
+       {
+        "across": false,
+        "char": "G",
+        "down": true,
+        "fixed": false
+      }
+    ],
+    "downWords": [
+      true,
+      true,
+      false,
+      true,
+      true
+    ],
+    "fixedAcross": true,
+    "fixedIndex": 0,
+    "gameOver": false,
+    "scoredChars": [
+      2,
+      2,
+      4,
+      1,
+      2,
+      2,
+      1,
+      1,
+      3,
+      4,
+      1,
+      2,
+      2,
+      4,
+      2,
+      1,
+      2,
+      0,
+      3,
+      2,
+      1,
+      1,
+      0,
+      1,
+      3
+    ],
+    "select": "down",
+    "selectAcross": true,
+    "showScores": false,
+    "startWord": "POKER",
+    "today": "8/2/2023",
+    "totalScore": 212
+  }

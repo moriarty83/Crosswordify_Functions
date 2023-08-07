@@ -28,18 +28,18 @@ const submitGame = async (req, res) => {
     res.set('Access-Control-Allow-Origin', '*');
     // Grab the text parameter.
     const state = req.body
+    const correctWord = await getWordByDate(state.today)
+    if (!helper.checkStartWord(correctWord,state.startWord)) {
+        return res.status(400).send('Wrong Start Word');
+    }
+
     const processedScore = await score.processScore(state)
-    let wordAdded = null
     if(processedScore.success == false){
         res.json(processedScore)
     }
-    const wordExists = await helper.checkWordExists(state.today, state.startWord)
-    if(!wordExists){
-        wordAdded = await helper.addword(await helper.getCorrectWord(state.today))
-    }
     const scoreId = await helper.addscore(processedScore.date, processedScore.score)
     // Send back a message that we've successfully written the message
-    res.json({...processedScore, wordAdded: wordAdded, scoreId: scoreId});
+    res.json({...processedScore, scoreId: scoreId});
   };
 
 const statsByDateRange = async (req, res) => {

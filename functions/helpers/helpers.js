@@ -29,19 +29,18 @@ exports.getStats = async (date) => {
 
         scoreObject["word"] = await this.getWordByDate(date)
 
-      console.log("scoreObject: ", scoreObject)
     return scoreObject
   };
 
   exports.getWordByDate = async(date)=>{
-    console.log("getWordByDate date: ", date)
     const wordSnap = await admin.firestore().collection("daily_words").where("date", "==", date).get();
     const snapData = wordSnap.docs.length ? wordSnap.docs[0].data() : null; // Assuming there's only one document in the collection
     if (snapData){
         return snapData.word
     }
     else{
-        return exports.addword(date, await exports.getCorrectWord(date))
+        const addedWord = await this.addword(date, await this.getCorrectWord(date))
+        return addedWord
     }
   }
 
@@ -56,18 +55,7 @@ exports.getStats = async (date) => {
     return statsMap
   };
 
-exports.checkWordExists = async (date, word) => {
-    // Grab the text parameter.
-    const wordSnap = await admin.firestore().collection("daily_words").where("date", "==", date).get();
-    const snapData = wordSnap.docs.length ? wordSnap.docs[0].data() : null; // Assuming there's only one document in the collection
-    if (snapData){
-        return snapData.word == word
-    }
-    else{
-        logger.info("no word")
-        return false
-    }
-  };
+
 
 exports.getCorrectWord = async (date)=>{
     const randomSeedable = await import("random-seedable");
@@ -86,22 +74,18 @@ exports.getCorrectWord = async (date)=>{
       length = correctWord.length
   
     }
-    
     return correctWord.toUpperCase() 
 }
 
+exports.checkStartWord = (correctWord, testWord)=>{
+    return correctWord == testWord
+}
+
 exports.addword = async (date, word) => {
-    const randomSeedable = await import("random-seedable");
-    // Destructure the XORShift class from the imported module
-    
-    const { XORShift } = randomSeedable;
-    const rando = new XORShift(date.split("/").join(""));
-    // Push the new message into Firestore using the Firebase Admin SDK.
     const writeResult = await getFirestore()
         .collection("daily_words")
         .add({date: date, word: word});
     // Send back a message that we've successfully written the message
-    console.log('writeResut.id: ', writeResult.id)
     const newWordRef = getFirestore().collection('daily_words').doc(writeResult.id);
 
     // Fetch the document
@@ -117,21 +101,22 @@ exports.addword = async (date, word) => {
 
     } else {
     // Document does not exist
-    return ('Document not found.');
+    return ('An error adding word');
     }
   };
 
   exports.addscore = async (date, score) => {
-    console.log("date: ", date)
-    console.log("score: ", score)
 
     // Push the new message into Firestore using the Firebase Admin SDK.
     const writeResult = await getFirestore()
         .collection("scores")
         .add({date: date, score: score});
     // Send back a message that we've successfully written the message
+    const scoreRef = admin.firestore().collection("scores").doc(writeResult.id);
+    const scoreSnapshot = await scoreRef.get();
+    const scoreData = scoreSnapshot.data()
 
-    return writeResult.id
+    return scoreData
   };
 
   exports.getDatesInRange = (startDateStr, endDateStr)=>{
